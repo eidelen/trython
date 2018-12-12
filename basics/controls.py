@@ -43,3 +43,43 @@ myMixedList.append("abc")
 
 for ele in myMixedList:
     print(ele)
+
+arr1 = [0,1,2,3]
+arr2 = [4,5,6,7]
+connectedList = arr1 + arr2
+print(connectedList)
+print(arr1 * 2)
+
+print((arr1 * 2).count(0)) # how many zeros ar in twice list arr1
+
+
+# Accumlate strings -> cool
+strAccum = "h" * 10
+print(strAccum)
+
+# more strings
+
+str1 = "abcde"
+print( str1[-1]) # prints the last character
+
+
+# loops
+
+for i in xrange(0,3):
+    print(i)
+else:
+    print( "loop ended")
+
+
+# functions
+
+def sumTwo(a, b):
+    return a + b;
+
+print( sumTwo(1,2) )
+
+
+
+
+
+
