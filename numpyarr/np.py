@@ -26,6 +26,13 @@ print(v)
 print(np.matmul(a,v))
 
 
+print( a[1,:] ) # second row
+
+
+#svd
+u, s, vh = np.linalg.svd(a)
+print( np.allclose(a, np.dot(u * s, vh)) )
+
 
 
 
