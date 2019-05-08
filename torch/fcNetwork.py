@@ -21,61 +21,66 @@ class FullyConnected(nn.Module):
         return x
 
 
+
+
+
 def testNet(net):
     n = 100;
     correct = 0
-    wrong = 0
+    x = torch.randn(n,1)
+    o = net(x)
 
     for i in range(n):
-        x = torch.randn(1,1)
-        o = net(x)
-
-        if x[0][0] > 0.0:
-            if o[0][0] > o[0][1]:
+        if x[i][0] > 0.0:
+            if o[i][0] > o[i][1]:
                 correct = correct + 1
-            else:
-                wrong = wrong + 1
         else:
-            if o[0][0] < o[0][1]:
+            if o[i][0] < o[i][1]:
                 correct = correct + 1
-            else:
-                wrong = wrong + 1
 
-    assert wrong + correct == n
+    return correct / n
 
-    print( correct / n * 100 )
+
 
 
 myNet = FullyConnected()
 params = list(myNet.parameters())
 print(params[0])
 
-for i in range(10000):
-    x = torch.randn(1,1)
-    y = torch.zeros(1,2)
+for i in range(100000):
 
-    if x[0][0] > 0.0:
-        y[0][0] = 1.0
-    else:
-        y[0][1] = 1.0
+    batchSize = 25
 
+    # create random input batch
+    x = torch.randn(batchSize,1)
+
+    # lable the input
+    y = torch.zeros(batchSize,2)
+    for l in range(batchSize):
+        if x[l][0] > 0.0:
+            y[l][0] = 1.0
+        else:
+            y[l][1] = 1.0
+
+    # feedforward and compute error
     out = myNet(x)
-
     crit = nn.MSELoss()
     errVal = crit(out,y)
 
+    # compute gradient
     myNet.zero_grad()
     errVal.backward()
 
+    # adapt bias and weights
     learning_rate = 0.01
     for f in myNet.parameters():
         f.data.sub_(f.grad.data * learning_rate)
 
-    if i % 25 == 0:
-        testNet(myNet)
-
-
-
-
-
+    # test performance
+    if i % 50 == 0:
+        success = testNet(myNet)
+        print(success*100.0)
+        if success > 0.99:
+            print("Well done...")
+            break
 
