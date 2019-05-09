@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
 
 # learn if a number is positive or negative
 
@@ -22,12 +23,27 @@ class FullyConnected(nn.Module):
 
 
 
+def getLabeledInput(nbrSamples):
+
+    # input
+    x = torch.randn(nbrSamples, 1)
+
+    # output -> positive or negative
+    y = torch.zeros(nbrSamples, 2)
+    for l in range(nbrSamples):
+        if x[l][0] > 0.0:
+            y[l][0] = 1.0
+        else:
+            y[l][1] = 1.0
+
+    return x, y
+
 
 
 def testNet(net):
     n = 100;
     correct = 0
-    x = torch.randn(n,1)
+    x,y = getLabeledInput(n)
     o = net(x)
 
     for i in range(n):
@@ -42,39 +58,30 @@ def testNet(net):
 
 
 
+print("pyTorch version" + torch.__version__)
 
+print("\n\nDo own optimisation")
 myNet = FullyConnected()
-params = list(myNet.parameters())
-print(params[0])
+
+optimizer = optim.SGD(myNet.parameters(), lr=0.01)
+crit = nn.MSELoss()
 
 for i in range(100000):
 
     batchSize = 25
 
-    # create random input batch
-    x = torch.randn(batchSize,1)
-
-    # lable the input
-    y = torch.zeros(batchSize,2)
-    for l in range(batchSize):
-        if x[l][0] > 0.0:
-            y[l][0] = 1.0
-        else:
-            y[l][1] = 1.0
+    x,y = getLabeledInput(batchSize)
 
     # feedforward and compute error
     out = myNet(x)
-    crit = nn.MSELoss()
     errVal = crit(out,y)
 
     # compute gradient
-    myNet.zero_grad()
+    optimizer.zero_grad()
     errVal.backward()
 
     # adapt bias and weights
-    learning_rate = 0.01
-    for f in myNet.parameters():
-        f.data.sub_(f.grad.data * learning_rate)
+    optimizer.step()
 
     # test performance
     if i % 50 == 0:
@@ -83,4 +90,5 @@ for i in range(100000):
         if success > 0.99:
             print("Well done...")
             break
+
 
