@@ -82,6 +82,20 @@ def doLabelMatrix(l):
 
 
 
+def showMultipleImages(imgs):
+    plt.close('all')
+    n = min( 144, len(imgs) )
+    fig = plt.figure(figsize=(12, 12))
+    for i in range(1, n+1):
+        img = imgs[i - 1] / 2.0 + 0.5
+        npimg = img.numpy()
+        fig.add_subplot(12, 12, i)
+        plt.imshow(npimg[0], cmap='gray', vmin=0, vmax=1)
+
+    plt.show(block=False)
+    plt.pause(1)
+
+
 
 print("pyTorch version" + torch.__version__)
 
@@ -107,6 +121,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9)
 for epoch in range(10000):
 
     running_loss = 0.0
+    wrongImgList = []
 
     for i, batch in enumerate(trainloader,0):
         x, y = batch
@@ -129,14 +144,23 @@ for epoch in range(10000):
     # test with testdata
     correct = 0
     total = 0
+    wrongImgList.clear()
     with torch.no_grad():
         for data in testloader:
             images, labels = data
             out = net(images)
             _, predicted = torch.max(out.data, 1)
             total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+            corrList = (predicted == labels)
+            correct += corrList.sum().item()
+            # copy wrong detected
+            for c in range(corrList.shape[0]):
+                if not corrList[c]:
+                    wrongImgList.append(images[c])
 
-    print('Accuracy of the network on the 10000 test images: %d %%' % (
-            100 * correct / total))
+
+    print('Accuracy of the network on the 10000 test images: %.2f  (%d,  %d)%% ' % (
+            100 * correct / total , correct, total))
+
+    showMultipleImages(wrongImgList)
 
