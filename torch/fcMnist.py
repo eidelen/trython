@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch.optim as optim
 import torch.nn.functional as F
+import time
 
 
 class ConvNet(nn.Module):
@@ -98,6 +99,9 @@ def showMultipleImages(imgs):
 
 
 print("pyTorch version" + torch.__version__)
+print( 'Cuda is' + (' on' if torch.cuda.is_available() else ' off'))
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("Use computational device: %s" % device)
 
 # load data
 transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,), (0.5, ))])
@@ -112,9 +116,9 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=10,
                                          shuffle=False, num_workers=0)
 
 
-
 # training
 net = ConvNet()
+net.to(device)
 criterion = nn.MSELoss()
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9)
 
@@ -122,6 +126,7 @@ for epoch in range(10000):
 
     running_loss = 0.0
     wrongImgList = []
+    start = time.time()
 
     for i, batch in enumerate(trainloader,0):
         x, y = batch
@@ -129,7 +134,7 @@ for epoch in range(10000):
         y = doLabelMatrix(y)
 
         optimizer.zero_grad()
-        out = net(x)
+        out = net(x.to(device))
 
         loss = criterion(out,y)
         loss.backward()
@@ -148,7 +153,7 @@ for epoch in range(10000):
     with torch.no_grad():
         for data in testloader:
             images, labels = data
-            out = net(images)
+            out = net(images.to(device))
             _, predicted = torch.max(out.data, 1)
             total += labels.size(0)
             corrList = (predicted == labels)
@@ -158,9 +163,9 @@ for epoch in range(10000):
                 if not corrList[c]:
                     wrongImgList.append(images[c])
 
+    runningtime = time.time() - start
+    print('Accuracy of the network on the 10000 test images: %.2f  (%d,  %d)%%   -  time: %.1f ' % (
+            100 * correct / total , correct, total, runningtime))
 
-    print('Accuracy of the network on the 10000 test images: %.2f  (%d,  %d)%% ' % (
-            100 * correct / total , correct, total))
-
-    showMultipleImages(wrongImgList)
+    # showMultipleImages(wrongImgList)
 
