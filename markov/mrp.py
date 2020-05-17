@@ -25,9 +25,9 @@ def get_state_transition_matrix() -> np.ndarray:
                     [0.0, 0.0, 0.0,  0.0, 0.0, 0.0,  0.0, 0.0, 1.0]])
     return p
 
-def get_reward_vector() -> np.ndarray:
-    r = np.array( [0, -1, -1,  -1, -1, -1,  -1, -1, 0 ] ).transpose()
-    return r
+def get_goals() -> np.ndarray:
+    g = np.array( [0 ] ).transpose()
+    return g
 
 
 class MyTestCase(unittest.TestCase):
@@ -39,23 +39,30 @@ class MyTestCase(unittest.TestCase):
 
         p = get_state_transition_matrix()
         v = np.zeros( (9) )
-        r = get_reward_vector()
-        for k in range(0,5):
+        goals = get_goals()
+        for k in range(0,10):
             v_n = v.copy()
             for s in range(0, 9):
-                ps = p[s][:].transpose()
-                future_value = ps * v
-                all_v = r + future_value
-                u = 2
+                if s in goals:
+                    v_n[s] = 0
+                else:
+                    states_after_actions = np.where(p[s] > 0.0) # check which states are reachable from state s
+                    best_value = -100000
+                    for ns in np.nditer(states_after_actions):
+                        # action leads to one specific new state -> probability 1.0.
+                        # -1 for reward
+                        value_guess = v[ns] - 1
+                        if best_value < value_guess:
+                            best_value = value_guess
+                    v_n[s] = best_value
+            v = v_n.copy()
+
+            print("Value iteration: ", k)
+            for m in range(0, 3):
+                print( v[3*m:3*m+3] )
 
 
-
-
-
-
-
-
-        self.assertEqual(True, False)
+        self.assertEqual(True, True)
 
 
 if __name__ == '__main__':
