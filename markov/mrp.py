@@ -26,7 +26,7 @@ def get_state_transition_matrix() -> np.ndarray:
     return p
 
 def get_goals() -> np.ndarray:
-    g = np.array( [0 ] ).transpose()
+    g = np.array( [0, 8 ] ).transpose()
     return g
 
 
