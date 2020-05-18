@@ -3,41 +3,44 @@ import numpy as np
 
 # markov reward process
 
-#  x: the goal   -: field to move    actions: u/d/l/r    reward: -1 for each move
-#   x - -
-#   - - -
-#   - - x
+#  x: the goal   -: field to move    actions: u/d/l/r    #: bad reward  T: Trap
+#   x - x
+#   # - -
+#   - - T
 
 #  numeric state values
 #   0 1 2
 #   3 4 5
 #   6 7 8
 
-def get_state_transition_matrix() -> np.ndarray:
+# actions lead ultimately to one next state
+def get_action_state_matrix() -> np.ndarray:
     p = np.array( [ [1.0, 0.0, 0.0,  0.0, 0.0, 0.0,  0.0, 0.0, 0.0],
-                    [0.25, 0.25, 0.25,  0.0, 0.25, 0.0,  0.0, 0.0, 0.0],
-                    [0.0, 0.25, 0.50,  0.0, 0.0, 0.25,  0.0, 0.0, 0.0 ],
-                    [0.25, 0.0, 0.0,  0.25, 0.25, 0.0,  0.25, 0.0, 0.0],
-                    [0.0, 0.25, 0.0,  0.25, 0.0, 0.25,  0.0, 0.25, 0.0],
-                    [0.0, 0.0, 0.25,  0.0, 0.25, 0.25,  0.0, 0.0, 0.25],
-                    [0.0, 0.0, 0.0,  0.25, 0.0, 0.0,  0.5, 0.25, 0.0],
-                    [0.0, 0.0, 0.0,  0.0, 0.25, 0.0,  0.25, 0.25, 0.25],
+                    [1.0, 1.0, 1.0,  0.0, 1.0, 0.0,  0.0, 0.0, 0.0],
+                    [0.0, 1.0, 1.0,  0.0, 0.0, 1.0,  0.0, 0.0, 0.0 ],
+                    [1.0, 0.0, 0.0,  1.0, 1.0, 0.0,  1.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0,  1.0, 0.0, 1.0,  0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0,  0.0, 1.0, 1.0,  0.0, 0.0, 1.0],
+                    [0.0, 0.0, 0.0,  1.0, 0.0, 0.0,  1.0, 1.0, 0.0],
+                    [0.0, 0.0, 0.0,  0.0, 1.0, 0.0,  1.0, 1.0, 1.0],
                     [0.0, 0.0, 0.0,  0.0, 0.0, 0.0,  0.0, 0.0, 1.0]])
     return p
 
 def get_goals() -> np.ndarray:
-    g = np.array( [0, 8 ] ).transpose()
+    g = np.array( [0, 2] ).transpose()
     return g
 
+def get_reward(state) -> int:
+    return -5 if state == 3 else -1
 
 class MyTestCase(unittest.TestCase):
 
     def test_value_iteration(self):
-        #   x  -1 -2
+        #   x  -1  x
         #   -1 -2 -1
-        #   -2 -1 -x
+        #   -4 -3 >5
 
-        p = get_state_transition_matrix()
+        p = get_action_state_matrix()
         v = np.zeros( (9) )
         goals = get_goals()
         for k in range(0,10):
@@ -50,8 +53,8 @@ class MyTestCase(unittest.TestCase):
                     best_value = -100000
                     for ns in np.nditer(states_after_actions):
                         # action leads to one specific new state -> probability 1.0.
-                        # -1 for reward
-                        value_guess = v[ns] - 1
+                        # negative reward for action
+                        value_guess = v[ns] + get_reward(ns)
                         if best_value < value_guess:
                             best_value = value_guess
                     v_n[s] = best_value
