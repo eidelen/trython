@@ -6,10 +6,12 @@ from model import *
 import random
 import time
 import math
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from os import path
 
 n_hidden = 128
 n_epochs = 100000
-print_every = 5000
 plot_every = 1000
 learning_rate = 0.005 # If you set this too high, it might explode. If too low, it might not learn
 
@@ -28,7 +30,13 @@ def randomTrainingPair():
     line_tensor = Variable(lineToTensor(line))
     return category, line, category_tensor, line_tensor
 
-rnn = RNN(n_letters, n_hidden, n_categories)
+model_name = 'char-rnn-classification.pt'
+
+if path.exists(model_name):
+    rnn = torch.load(model_name)
+else:
+    rnn = RNN(n_letters, n_hidden, n_categories)
+
 optimizer = torch.optim.SGD(rnn.parameters(), lr=learning_rate)
 criterion = nn.NLLLoss()
 
@@ -57,6 +65,28 @@ def timeSince(since):
     s -= m * 60
     return '%dm %ds' % (m, s)
 
+# Just return an output given a line
+def evaluate(line_tensor):
+    hidden = rnn.initHidden()
+
+    for i in range(line_tensor.size()[0]):
+        output, hidden = rnn(line_tensor[i], hidden)
+
+    return output
+
+# Randomly test
+def randomTest(n_samples):
+    correct = 0
+    for i in range(n_samples):
+        category, line, category_tensor, line_tensor = randomTrainingPair()
+        output = evaluate(line_tensor)
+        guess, guess_i = categoryFromOutput(output)
+        category_i = all_categories.index(category)
+        if category_i == guess_i:
+            correct += 1
+    return correct / n_samples
+
+
 start = time.time()
 
 for epoch in range(1, n_epochs + 1):
@@ -64,16 +94,50 @@ for epoch in range(1, n_epochs + 1):
     output, loss = train(category_tensor, line_tensor)
     current_loss += loss
 
-    # Print epoch number, loss, name and guess
-    if epoch % print_every == 0:
-        guess, guess_i = categoryFromOutput(output)
-        correct = '✓' if guess == category else '✗ (%s)' % category
-        print('%d %d%% (%s) %.4f %s / %s %s' % (epoch, epoch / n_epochs * 100, timeSince(start), loss, line, guess, correct))
-
     # Add current loss avg to list of losses
     if epoch % plot_every == 0:
-        all_losses.append(current_loss / plot_every)
+        avg_loss = current_loss / plot_every
+        all_losses.append(avg_loss)
+        performance = randomTest(1000)
+        print("loss = %.4f, progress = %.2f%%, performance = %.2f%% " % (avg_loss, epoch / n_epochs * 100, performance * 100))
         current_loss = 0
 
-torch.save(rnn, 'char-rnn-classification.pt')
+plt.plot(all_losses)
+plt.show()
+torch.save(rnn, model_name)
+
+
+
+# Keep track of correct guesses in a confusion matrix
+confusion = torch.zeros(n_categories, n_categories)
+n_confusion = 1000
+
+# Go through a bunch of examples and record which are correctly guessed
+for i in range(n_confusion):
+    category, line, category_tensor, line_tensor = randomTrainingPair()
+    output = evaluate(line_tensor)
+    guess, guess_i = categoryFromOutput(output)
+    category_i = all_categories.index(category)
+    confusion[category_i][guess_i] += 1
+
+# Normalize by dividing every row by its sum
+for i in range(n_categories):
+    confusion[i] = confusion[i] / confusion[i].sum()
+
+# Set up plot
+fig = plt.figure()
+ax = fig.add_subplot(111)
+cax = ax.matshow(confusion.numpy())
+fig.colorbar(cax)
+
+# Set up axes
+ax.set_xticklabels([''] + all_categories, rotation=90)
+ax.set_yticklabels([''] + all_categories)
+
+# Force label at every tick
+ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+
+# sphinx_gallery_thumbnail_number = 2
+plt.show()
 

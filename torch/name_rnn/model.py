@@ -9,15 +9,18 @@ class RNN(nn.Module):
         super(RNN, self).__init__()
 
         self.hidden_size = hidden_size
-
-        self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
-        self.i2o = nn.Linear(input_size + hidden_size, output_size)
+        self.i2h = nn.Linear(input_size + hidden_size, hidden_size )
+        self.i2a = nn.Linear(input_size + hidden_size, output_size * 2 + hidden_size * 2)
+        self.a2b = nn.Linear(output_size * 2 + hidden_size * 2, output_size * 4)
+        self.b2o = nn.Linear(output_size * 4, output_size)
         self.softmax = nn.LogSoftmax()
 
     def forward(self, input, hidden):
         combined = torch.cat((input, hidden), 1) # concatenate the two vectors in direction 1
+        a = self.i2a(combined)
         hidden = self.i2h(combined)
-        output = self.i2o(combined)
+        b = self.a2b(a)
+        output = self.b2o(b)
         output = self.softmax(output)
         return output, hidden
 
