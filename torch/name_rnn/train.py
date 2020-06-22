@@ -11,9 +11,10 @@ import matplotlib.ticker as ticker
 from os import path
 
 n_hidden = 128
+n_layers = 1
 n_epochs = 100000
 plot_every = 1000
-learning_rate = 0.005 # If you set this too high, it might explode. If too low, it might not learn
+learning_rate = 0.001 # If you set this too high, it might explode. If too low, it might not learn
 
 def categoryFromOutput(output):
     top_n, top_i = output.data.topk(1) # Tensor out of Variable with .data
@@ -35,19 +36,22 @@ model_name = 'char-rnn-classification.pt'
 if path.exists(model_name):
     rnn = torch.load(model_name)
 else:
-    rnn = RNN(n_letters, n_hidden, n_categories)
+    rnn = RNN(n_letters, n_hidden, n_layers, n_categories)
 
 optimizer = torch.optim.SGD(rnn.parameters(), lr=learning_rate)
 criterion = nn.NLLLoss()
 
 def train(category_tensor, line_tensor):
-    hidden = rnn.initHidden()
+    h, c = rnn.initHidden()
     optimizer.zero_grad()
 
     for i in range(line_tensor.size()[0]):
-        output, hidden = rnn(line_tensor[i], hidden)
+        lt3 = torch.unsqueeze(line_tensor[i], 0)
+        output, h, c = rnn(lt3, h, c)
 
-    loss = criterion(output, category_tensor)
+    print(category_tensor)
+    print(category_tensor.shape)
+    loss = criterion(torch.squeeze(output,0), category_tensor)
     loss.backward()
 
     optimizer.step()
@@ -67,12 +71,13 @@ def timeSince(since):
 
 # Just return an output given a line
 def evaluate(line_tensor):
-    hidden = rnn.initHidden()
+    h, c = rnn.initHidden()
 
     for i in range(line_tensor.size()[0]):
-        output, hidden = rnn(line_tensor[i], hidden)
+        lt3 = torch.unsqueeze(line_tensor[i], 0)
+        output, h, c = rnn(lt3, h, c)
 
-    return output
+    return torch.squeeze(output,0)
 
 # Randomly test
 def randomTest(n_samples):

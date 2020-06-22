@@ -5,24 +5,70 @@ import torch.nn as nn
 from torch.autograd import Variable
 
 class RNN(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, input_size, hidden_size, n_layers, output_size):
         super(RNN, self).__init__()
 
         self.hidden_size = hidden_size
-        self.i2h = nn.Linear(input_size + hidden_size, hidden_size )
-        self.i2a = nn.Linear(input_size + hidden_size, output_size * 2 + hidden_size * 2)
-        self.a2b = nn.Linear(output_size * 2 + hidden_size * 2, output_size * 4)
-        self.b2o = nn.Linear(output_size * 4, output_size)
-        self.softmax = nn.LogSoftmax()
+        self.n_layers = n_layers
 
-    def forward(self, input, hidden):
-        combined = torch.cat((input, hidden), 1) # concatenate the two vectors in direction 1
-        a = self.i2a(combined)
-        hidden = self.i2h(combined)
-        b = self.a2b(a)
-        output = self.b2o(b)
-        output = self.softmax(output)
-        return output, hidden
+        self.lstm = nn.LSTM(input_size, hidden_size, n_layers)
+        self.l2o = nn.Linear(hidden_size, output_size)
+
+    def forward(self, input, h, c):
+        l, (h_new, c_new) = self.lstm(input, (h, c))
+        output = self.l2o(l)
+        return output, h_new, c_new
 
     def initHidden(self):
-        return Variable(torch.zeros(1, self.hidden_size))
+        return torch.zeros(self.n_layers, 1, self.hidden_size), \
+               torch.zeros(self.n_layers, 1, self.hidden_size)
+
+
+
+
+def simple_test():
+    net = RNN(10, 10, 1, 10)
+    optimizer = torch.optim.SGD(net.parameters(), lr=0.001)
+    criterion = nn.CrossEntropyLoss()
+
+    # sample 1
+    i00 = torch.zeros(1, 1, 10)
+    i00[0,0,3] = 1.0
+    i01 = torch.zeros(1, 1, 10)
+    i01[0,0,6] = 1.0
+    l0 = torch.ones(1, dtype=torch.long)
+    l0[0] = 5
+
+    # sample 2
+    i10 = torch.zeros(1, 1, 10)
+    i10[0,0,7] = 1.0
+    i11 = torch.zeros(1, 1, 10)
+    i11[0, 0, 1] = 1.0
+    l1 = torch.ones(1, dtype=torch.long)
+    l1[0] = 4
+
+    optimizer.zero_grad()
+
+    for i in range(1000):
+        h, c = net.initHidden()
+
+        # interchanging sample input
+        if i % 2 == 0:
+            i0, i1, l = i00, i01, l0
+        else:
+            i0, i1, l = i10, i11, l1
+
+        # each sample has a sequence of length two
+        _, h, c = net(i0, h, c)
+        output, _, _ = net(i1, h, c)
+
+        loss = criterion(torch.squeeze(output,0), l)
+        loss.backward()
+        optimizer.step()
+        print(output)
+        print(loss.item())
+
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    simple_test()
