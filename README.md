@@ -1,3 +1,3 @@
 # trython
 
-Learning python in order to use tensorflow and pytorch.
+My python programming play yard 
