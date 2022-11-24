@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "trython"
+version = "0.1.0"
+description = ""
+authors = ["Adrian <adrian.schneider.pr@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+scipy = "^1.9.3"
+numpy = "^1.23.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
