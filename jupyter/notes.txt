@@ -1,0 +1,10 @@
+
+Prepare virtual environment:
+
+python -m venv venv
+pip install jupyterlab
+pip install notebook
+pip install ipywidgets
+pip install pillow
+
+
