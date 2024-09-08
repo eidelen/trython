@@ -1,13 +1,10 @@
 import math
 
-steps = 100000
-accum = 1.0
-q = 1.0
 
-for n in range(1, steps):
+s = 6
+c = 44
 
-    accum += q / steps * accum
+print("Sohyi ist ", s ," Jahre alt")
+print("Latzen ist ", c ," Jahre alt")
 
-    print(accum, math.fabs(accum - math.e))
-
-print(1 * (q/steps)**steps)
+print("Zusammen ", s + c)
