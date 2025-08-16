@@ -10,6 +10,9 @@ class EggGame:
         for i in range(n_floors):
             self.floors.append(i < breaking_pnt)
 
+    def get_nbr_floors(self) -> int:
+        return self.n_floors
+
     def drop_egg(self, floor) -> int:
         """
         return 0: Egg did not break
@@ -17,7 +20,7 @@ class EggGame:
         return 2: Game is over
         return 3: Invalid floor
         """
-        if floor < 0 or floor >= len(self.floors):
+        if floor < 0 or floor >= self.get_nbr_floors():
             return 3
         if self.n_eggs_remaining == 0:
             return 2
