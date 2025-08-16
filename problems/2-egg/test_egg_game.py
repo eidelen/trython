@@ -31,7 +31,9 @@ class TestEggGame(unittest.TestCase):
         self.assertEqual(eggs_left, 1)
         self.assertEqual(drops, 1)
 
-        # Break the last egg => returns 2 (game over)
+        # Break the last egg
+        self.assertEqual(game.drop_egg(7), 1)
+        # Then game over
         self.assertEqual(game.drop_egg(7), 2)
         n_floors, breaking_pnt, eggs_left, drops = game.get_state()
         self.assertEqual(eggs_left, 0)
@@ -39,8 +41,8 @@ class TestEggGame(unittest.TestCase):
 
     def test_game_over_no_more_drops(self):
         game = EggGame(n_eggs=1, n_floors=10, breaking_pnt=2)
-        # First drop at 2 breaks the only egg and ends game
-        self.assertEqual(game.drop_egg(2), 2)
+        # Game over when trying to drop an egg even though there is non left
+        self.assertEqual(game.drop_egg(2), 1)
         # Further attempts return 2 and do not increase drop count
         self.assertEqual(game.drop_egg(0), 2)
         self.assertEqual(game.get_state(), (10, 2, 0, 1))

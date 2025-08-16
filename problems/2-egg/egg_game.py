@@ -29,8 +29,6 @@ class EggGame:
 
         if not self.floors[floor]:
             self.n_eggs_remaining -= 1
-            if self.n_eggs_remaining == 0:
-                return 2
             return 1
         return 0
 
