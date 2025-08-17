@@ -1,5 +1,5 @@
 from egg_game import EggGame
-from methods import brute_force_find_breaking_point, sampling_find_breaking_point
+from methods import brute_force_find_breaking_point, sampling_find_breaking_point, generate_random_sampling_points
 from benchmark import benchmark_egg_methods
 
 def test_egg_methods():
@@ -62,6 +62,31 @@ def find_best_sampling():
 
 
 
+def find_best_random_sampling():
+    n_floors = 100
+    n_eggs = 2
+    n_samples_per_epoch = 100000
+    base = []
+    variation = 10
+    best_solution = n_floors
+    for e in range(100):
+        print("Epoch ", e)
+        best_sampling_points_in_epoch = []
+        for i in range(n_samples_per_epoch):
+            sampling_points = generate_random_sampling_points(n_floors, base, variation)
+            this_solution = benchmark_egg_methods(n_floors, n_eggs, ("Random sampling Method", sampling_find_breaking_point, sampling_points))
+
+            if this_solution < best_solution:
+                best_solution = this_solution
+                best_sampling_points_in_epoch = sampling_points
+                print("Best solution found! ", best_solution, sampling_points)
+
+        base = best_sampling_points_in_epoch
+
+
+
+
+
 
 
 
@@ -81,9 +106,16 @@ if __name__ == '__main__':
     #comp_breaking_pnt, drop_cnt = sampling_find_breaking_point(game)
     #print(comp_breaking_pnt, drop_cnt)
 
-    find_best_sampling()
+    # find_best_sampling()
 
     #print(benchmark_egg_methods(("9", sampling_find_breaking_point, [3, 5, 7])))
+
+    find_best_random_sampling()
+
+    # optimal
+    #print(benchmark_egg_methods(100, 2, ("opt", sampling_find_breaking_point, [13, 26, 38, 49, 59, 68, 76, 83, 89, 94, 98])))
+
+
 
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

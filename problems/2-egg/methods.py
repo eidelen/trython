@@ -4,7 +4,9 @@ Brute-force method demo for the Egg Dropping game.
 This script imports `EggGame` and provides a `main()` that
 demonstrates a simple linear search to identify the breaking point.
 """
-from typing import Tuple
+from typing import Tuple, List
+from random import randint
+from math import ceil
 from egg_game import EggGame
 
 
@@ -50,6 +52,46 @@ def sampling_find_breaking_point(game: EggGame, sampling_points=[]) -> Tuple[int
 
     # brute force search from last valid sampling point
     return brute_force_find_breaking_point(game, start_floor=last_non_breaking_sampling_point)
+
+
+def generate_random_sampling_points(n_floors: int, base=[], variation = 2) -> List[int]:
+    sampling_points = []
+    last_sampling_point = -1
+    if base == []:
+        while last_sampling_point + 1 < n_floors:
+            next_sampling_point = randint(last_sampling_point + 1, n_floors - 1)
+            sampling_points.append(next_sampling_point)
+            last_sampling_point = next_sampling_point
+    else:
+        for b in base:
+            offset = randint(-variation, +variation)
+            next_sampling_point = b + offset
+            if next_sampling_point + 1 < n_floors and next_sampling_point > last_sampling_point:
+                sampling_points.append(next_sampling_point)
+                last_sampling_point = next_sampling_point
+
+    # randomly remove or add entries
+    final_sampling_points = []
+    last_sampling_point = 0
+    for s in sampling_points:
+        r = randint(0, 10)
+        if r < 3:
+            #remove it
+            pass
+        elif r < 6:
+            # add an intermediate point
+            intermediate_sampling_point = ceil((last_sampling_point + s) / 2)
+            if last_sampling_point < intermediate_sampling_point < s:
+                final_sampling_points.append(intermediate_sampling_point)
+            final_sampling_points.append(s)
+            last_sampling_point = s
+        else:
+            final_sampling_points.append(s)
+            last_sampling_point = s
+
+    return final_sampling_points
+
+
 
 def main():
     # Example configuration; adjust as needed
@@ -100,6 +142,11 @@ def main():
         f"SAMP Found breaking point: {found_breaking_point} | "
         f"SAMP Correct: {is_correct} | State: {game4.get_state()}"
     )
+
+    for i in range(50):
+        rnd_samp = generate_random_sampling_points(100, [10, 20, 30], 1)
+        print(rnd_samp)
+
 
 
 if __name__ == "__main__":
