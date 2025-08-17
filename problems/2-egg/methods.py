@@ -27,6 +27,7 @@ def brute_force_find_breaking_point(game: EggGame, start_floor=0) -> Tuple[int, 
     # No break occurred => breaking point equals number of floors
     return -1, 0
 
+
 def sampling_find_breaking_point(game: EggGame, sampling_points=[]) -> Tuple[int, int]:
     n_floors = game.get_nbr_floors()
 
@@ -34,7 +35,7 @@ def sampling_find_breaking_point(game: EggGame, sampling_points=[]) -> Tuple[int
         sampling_points = list(range(n_floors+1)) # default sampling every floor (like brute force)
 
     # sample till first egg breaks
-    last_non_breaking_sampling_point = sampling_points[0]
+    last_non_breaking_sampling_point = 0
     for sampling_point in sampling_points:
         result = game.drop_egg(sampling_point)
         if result == 1:
@@ -50,9 +51,6 @@ def sampling_find_breaking_point(game: EggGame, sampling_points=[]) -> Tuple[int
     # brute force search from last valid sampling point
     return brute_force_find_breaking_point(game, start_floor=last_non_breaking_sampling_point)
 
-
-
-
 def main():
     # Example configuration; adjust as needed
     n_eggs = 2
@@ -60,25 +58,47 @@ def main():
     breaking_pnt = 20
 
     game = EggGame(n_eggs=n_eggs, n_floors=n_floors, breaking_pnt=breaking_pnt)
-    found_breaking_point = brute_force_find_breaking_point(game)
+    found_breaking_point, attempts = brute_force_find_breaking_point(game)
 
     # Single allowed guess: verify our found breaking point
     is_correct = game.guess_breaking_pnt(found_breaking_point)
 
     print(
-        f"Found breaking point: {found_breaking_point} | "
-        f"Correct: {is_correct} | State: {game.get_state()}"
+        f"BF Found breaking point: {found_breaking_point} | "
+        f"BF Correct: {is_correct} | State: {game.get_state()}"
     )
 
     game2 = EggGame(n_eggs=n_eggs, n_floors=n_floors, breaking_pnt=breaking_pnt)
-    found_breaking_point = brute_force_find_breaking_point(game2, start_floor=19)
+    found_breaking_point, attempts = brute_force_find_breaking_point(game2, start_floor=19)
 
     # Single allowed guess: verify our found breaking point
     is_correct = game2.guess_breaking_pnt(found_breaking_point)
 
     print(
-        f"Found breaking point: {found_breaking_point} | "
-        f"Correct: {is_correct} | State: {game2.get_state()}"
+        f"BF Found breaking point: {found_breaking_point} | "
+        f"BF Correct: {is_correct} | State: {game2.get_state()}"
+    )
+
+    game3 = EggGame(n_eggs=n_eggs, n_floors=n_floors, breaking_pnt=breaking_pnt)
+    found_breaking_point, attempts = sampling_find_breaking_point(game3)
+
+    # Single allowed guess: verify our found breaking point
+    is_correct = game3.guess_breaking_pnt(found_breaking_point)
+
+    print(
+        f"SAMP Found breaking point: {found_breaking_point} | "
+        f"SAMP Correct: {is_correct} | State: {game3.get_state()}"
+    )
+
+    game4 = EggGame(n_eggs=n_eggs, n_floors=n_floors, breaking_pnt=breaking_pnt)
+    found_breaking_point, attempts = sampling_find_breaking_point(game4, [19, 21])
+
+    # Single allowed guess: verify our found breaking point
+    is_correct = game4.guess_breaking_pnt(found_breaking_point)
+
+    print(
+        f"SAMP Found breaking point: {found_breaking_point} | "
+        f"SAMP Correct: {is_correct} | State: {game4.get_state()}"
     )
 
 
