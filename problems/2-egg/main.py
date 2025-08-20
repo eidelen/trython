@@ -1,6 +1,7 @@
 from egg_game import EggGame
 from methods import brute_force_find_breaking_point, sampling_find_breaking_point, generate_random_sampling_points
 from benchmark import benchmark_egg_methods
+from collections import deque
 
 def test_egg_methods():
     benchmark_egg_methods(("BruteForce", brute_force_find_breaking_point, None))
@@ -65,23 +66,37 @@ def find_best_sampling():
 def find_best_random_sampling():
     n_floors = 100
     n_eggs = 2
-    n_samples_per_epoch = 100000
-    base = []
+    n_samples_per_epoch = 500000
+
+    best_sampling_points_solutions = deque()
+    best_sampling_points_solutions.append([])
+
     variation = 10
     best_solution = n_floors
-    for e in range(100):
-        print("Epoch ", e)
-        best_sampling_points_in_epoch = []
-        for i in range(n_samples_per_epoch):
-            sampling_points = generate_random_sampling_points(n_floors, base, variation)
-            this_solution = benchmark_egg_methods(n_floors, n_eggs, ("Random sampling Method", sampling_find_breaking_point, sampling_points))
+    the_very_best_sampling_points = []
 
+
+    for e in range(100):
+        # epoch pop solutions when no progress
+        if len(best_sampling_points_solutions) > 0:
+            epoch_base_sampling_points = best_sampling_points_solutions.pop()
+        else:
+            epoch_base_sampling_points = []
+
+        print("Epoch ", e, "Base: ", epoch_base_sampling_points)
+
+        for i in range(n_samples_per_epoch):
+            sampling_points = generate_random_sampling_points(n_floors, epoch_base_sampling_points, variation)
+            this_solution = benchmark_egg_methods(n_floors, n_eggs, ("Random sampling Method", sampling_find_breaking_point, sampling_points))
             if this_solution < best_solution:
                 best_solution = this_solution
-                best_sampling_points_in_epoch = sampling_points
+                best_sampling_points_solutions.append(sampling_points)
+                the_very_best_sampling_points = sampling_points
                 print("Best solution found! ", best_solution, sampling_points)
 
-        base = best_sampling_points_in_epoch
+    print("Final Result = ", best_solution, the_very_best_sampling_points)
+
+
 
 
 
