@@ -1,5 +1,10 @@
-from math import asin, sin, cos, pi
+from math import asin, sin, cos, pi, sqrt
 from scipy.optimize import root_scalar
+
+
+def g(a):
+    val = pi/2.0 - sin(a) - pi*cos(a) + a * cos(a)
+    return val
 
 def f(r):
     R = 1.0
@@ -9,8 +14,10 @@ def f(r):
     A2 = R ** 2 * (a - cos(a) * sin(a))
     AT = (R ** 2 * pi) / 2
     residual = A1 + A2 - AT
-    print(AT, A1 + A2, residual)
     return residual
 
 result = root_scalar(f, bracket=[0.5, 2], method='brentq')
-print(result.root)
+print("Res1", result.root)
+
+a = root_scalar(g, bracket=[0.5, 1.5], method='brentq').root
+print("Res2", a, "r:", 1 * sqrt( 2 * (1 - cos(a)) ))
